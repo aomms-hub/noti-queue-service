@@ -57,7 +57,7 @@ class RabbitClient:
 
         payload = {
             "amount": amount,
-            "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime) else timestamp,
+            "timestamp": timestamp.isoformat(),
             "source": title
         }
 

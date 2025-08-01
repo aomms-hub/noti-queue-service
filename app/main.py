@@ -2,13 +2,16 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import logging
 from contextlib import asynccontextmanager
 from app.client.rabbit_client import RabbitClient
-
-rabbit_client = RabbitClient()
+from app.services.notification_service import publish_amount_message
+from config import TIME_ZONE
 
 logging.basicConfig(level=logging.INFO,format="%(asctime)s | %(levelname)s | %(message)s")
+
+rabbit_client = RabbitClient()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,12 +47,13 @@ def extract_exact_amount(message: str) -> str:
 
 @app.post("/notify")
 async def receive_notification(notification: NotificationRequest):
+    timestamp = datetime.now(ZoneInfo(TIME_ZONE))
     amount = extract_exact_amount(notification.message)
     if amount == "invalid amount message":
         return {"status": "error", "detail": "Invalid amount format."}
-    await rabbit_client.publish_message(amount, notification.title, notification.timestamp)
+    await publish_amount_message(amount=amount, source=notification.title, timestamp=timestamp)
     return {
         "status": "received",
         "amount": amount,
-        "timestamp": datetime.now()
+        "timestamp": timestamp
     }
