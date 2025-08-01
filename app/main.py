@@ -44,6 +44,8 @@ def extract_exact_amount(message: str) -> str:
 @app.post("/notify")
 async def receive_notification(notification: NotificationRequest):
     amount = extract_exact_amount(notification.message)
+    if amount == "invalid amount message":
+        return {"status": "error", "detail": "Invalid amount format."}
     await rabbit_client.publish_message(amount, notification.title, notification.timestamp)
     return {
         "status": "received",
