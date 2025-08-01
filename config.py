@@ -13,4 +13,4 @@ EXCHANGE_NAME = "notification.queue.amount"
 ROUTING_KEY = "notify.amount.parsed"
 
 PAY_ALERT_COMPOSITE_URL = "https://pay-alert-composite-production.up.railway.app"
-START_CONSUMER_PATH = "/start_consumer"
+START_CONSUMER_PATH = "/consumer/start"
