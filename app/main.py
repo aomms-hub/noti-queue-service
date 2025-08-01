@@ -35,7 +35,7 @@ app = FastAPI(lifespan=lifespan)
 class NotificationRequest(BaseModel):
     message: str
     title: str
-    timestamp: datetime
+    timestamp: str
 
 
 def extract_exact_amount(message: str) -> str:
