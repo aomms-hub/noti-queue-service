@@ -25,6 +25,8 @@ class RabbitClient:
             aio_pika.ExchangeType.DIRECT,
             durable=True
         )
+        if not self.idle_task:
+            self.idle_task = asyncio.create_task(self._idle_watcher())
 
     async def _idle_watcher(self):
         while True:
@@ -42,6 +44,9 @@ class RabbitClient:
             self.connection = None
             self.channel = None
             self.exchange = None
+        if self.idle_task:
+            self.idle_task.cancel()
+            self.idle_task = None
 
     async def publish_message(self, amount: str, title: str, timestamp: str):
         payload = {
