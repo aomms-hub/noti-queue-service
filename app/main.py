@@ -31,7 +31,7 @@ app = FastAPI(lifespan=lifespan)
 class NotificationRequest(BaseModel):
     message: str
     title: str
-    time: str
+    timestamp: str
 
 
 def extract_exact_amount(message: str) -> str:
@@ -44,7 +44,7 @@ def extract_exact_amount(message: str) -> str:
 @app.post("/notify")
 async def receive_notification(notification: NotificationRequest):
     amount = extract_exact_amount(notification.message)
-    await rabbit_client.publish_message(amount, notification.title, notification.time)
+    await rabbit_client.publish_message(amount, notification.title, notification.timestamp)
     return {
         "status": "received",
         "amount": amount,

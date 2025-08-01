@@ -1,14 +1,19 @@
+import asyncio
+import time
 import aio_pika
 import json
-from typing import Optional
 from config import RABBITMQ_URL, EXCHANGE_NAME, ROUTING_KEY
 
+
 class RabbitClient:
-    def __init__(self, url: str = RABBITMQ_URL):
+    def __init__(self, url: str = RABBITMQ_URL, idle_timeout=300):
         self.url = url
-        self.connection: Optional[aio_pika.RobustConnection] = None
-        self.channel: Optional[aio_pika.Channel] = None
-        self.exchange: Optional[aio_pika.Exchange] = None
+        self.connection = None
+        self.channel = None
+        self.exchange = None
+        self.last_activity = time.time()
+        self.idle_timeout = idle_timeout  # วินาที
+        self.idle_task = None
 
     async def connect(self):
         if self.connection and not self.connection.is_closed:
@@ -21,14 +26,27 @@ class RabbitClient:
             durable=True
         )
 
+    async def _idle_watcher(self):
+        while True:
+            await asyncio.sleep(10)
+            idle_time = time.time() - self.last_activity
+            if idle_time > self.idle_timeout:
+                print(f"Idle timeout {self.idle_timeout}s reached. Closing connection...")
+                await self.close()
+                self.idle_task = None
+                break
+
     async def close(self):
         if self.connection and not self.connection.is_closed:
             await self.connection.close()
+            self.connection = None
+            self.channel = None
+            self.exchange = None
 
-    async def publish_message(self, amount: str, title: str, time: str):
+    async def publish_message(self, amount: str, title: str, timestamp: str):
         payload = {
             "amount": amount,
-            "time": time,
+            "timestamp": timestamp,
             "source": title
         }
 
