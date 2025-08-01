@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import re
-import datetime
+from datetime import datetime
 import logging
 from contextlib import asynccontextmanager
 from app.client.rabbit_client import RabbitClient
 
 rabbit_client = RabbitClient()
 
+logging.basicConfig(level=logging.INFO,format="%(asctime)s | %(levelname)s | %(message)s")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,7 +32,7 @@ app = FastAPI(lifespan=lifespan)
 class NotificationRequest(BaseModel):
     message: str
     title: str
-    timestamp: str
+    timestamp: datetime
 
 
 def extract_exact_amount(message: str) -> str:
@@ -50,5 +51,5 @@ async def receive_notification(notification: NotificationRequest):
     return {
         "status": "received",
         "amount": amount,
-        "timestamp": datetime.datetime.now()
+        "timestamp": datetime.now()
     }

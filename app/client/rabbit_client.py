@@ -2,6 +2,7 @@ import asyncio
 import time
 import aio_pika
 import json
+from datetime import datetime
 from config import RABBITMQ_URL, EXCHANGE_NAME, ROUTING_KEY
 
 
@@ -48,15 +49,17 @@ class RabbitClient:
             self.idle_task.cancel()
             self.idle_task = None
 
-    async def publish_message(self, amount: str, title: str, timestamp: str):
+    async def publish_message(self, amount: str, title: str, timestamp: datetime):
+        if not self.connection or self.connection.is_closed:
+            await self.connect()
+
+        self.last_activity = time.time()
+
         payload = {
             "amount": amount,
-            "timestamp": timestamp,
+            "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime) else timestamp,
             "source": title
         }
-
-        if not self.exchange:
-            raise Exception("Exchange not initialized. Call connect() first.")
 
         msg = aio_pika.Message(
             body=json.dumps(payload).encode(),
