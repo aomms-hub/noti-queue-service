@@ -4,7 +4,7 @@ import aio_pika
 import json
 from datetime import datetime
 from config import RABBITMQ_URL, EXCHANGE_NAME, ROUTING_KEY
-
+import logging
 
 class RabbitClient:
     def __init__(self, url: str = RABBITMQ_URL, idle_timeout=300):
@@ -68,3 +68,4 @@ class RabbitClient:
         )
 
         await self.exchange.publish(msg, routing_key=ROUTING_KEY)
+        logging.info(f"Published Message to {EXCHANGE_NAME} Routing Key {ROUTING_KEY} with amount {amount}")
