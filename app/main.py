@@ -39,7 +39,7 @@ class NotificationRequest(BaseModel):
 
 
 def extract_exact_amount(message: str) -> str:
-    match = re.search(r"\b\d{1,3}\.\d{2}\b", message)
+    match = re.search(r"\b\d{1,12}\.\d{2}\b", message)
     if match:
         return match.group(0)
     return "invalid amount message"
